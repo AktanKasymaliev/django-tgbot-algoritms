@@ -6,6 +6,7 @@ migrations
 /.idea
 .idea/
 *.pyc/
+ngrok.exe
 # Django #
 *.log
 *.pot

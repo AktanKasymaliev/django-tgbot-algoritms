@@ -15,7 +15,7 @@ SECRET_KEY = os.environ.get("DJANGO_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = eval(os.environ.get("DJANGO_DEBUG"))
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "687d84ef33d2.ngrok.io"]
 
 
 # Application definition
@@ -29,6 +29,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     "django_tgbot",
+    "learn_algoritms_bot",
+
+    "memo",
 ]
 
 MIDDLEWARE = [
