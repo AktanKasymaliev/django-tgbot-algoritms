@@ -1,11 +1,7 @@
 from django.db import models
-from django.db import models
 from django.db.models.signals import post_save
-
+from django.dispatch import receiver
 from supermemo2 import SMTwo
-
-class MemoException(Exception):
-    pass
 
 class QualityChoices(models.IntegerChoices):
     COMPLETE_BLACKOUT = 0
@@ -18,29 +14,9 @@ class QualityChoices(models.IntegerChoices):
 class TaskToMemorize(models.Model):
     title = models.CharField(max_length=255)
     url = models.URLField(max_length=255, null=True, blank=True)
-
-    def create_new_review(self, quality):
-        """Call this when there are some reviews (at least one) reviews"""
-        if quality < 0 or quality > 5:
-            raise MemoException(
-                'Quality should be between 0 and 5 inclusively')
-        last_rev = self.reviews.last()
-        rev = SMTwo.first_review(quality, last_rev.review_date)
-        Review.objects.create(
-            item=self,
-            quality=quality,
-            next_review_date=rev.review_date)
-
-    @classmethod
-    def post_create(cls, sender, instance, created, *args, **kwargs):
-        if created:
-            rev = SMTwo.first_review(3)
-            Review.objects.create(
-                item=instance,
-                next_review_date=rev.review_date)
-
-    def __str__(self) -> str:
-        return self.title
+    quality = models.IntegerField(
+        choices=QualityChoices.choices,
+    )
 
 class Review(models.Model):
     item = models.ForeignKey(TaskToMemorize,
@@ -54,6 +30,14 @@ class Review(models.Model):
     next_review_date = models.DateField(null=True, blank=True)
 
     def __str__(self):
-        return f'Review of {self.item}: {self.review_date}'
+        return f'Review of {self.item}: {self.next_review_date}'
 
-post_save.connect(TaskToMemorize.post_create, sender=TaskToMemorize)
+@receiver(post_save, sender=TaskToMemorize)
+def create_review(sender, instance, created, *args, **kwargs):
+    """Post save signals which create a first view for users"""
+    review = SMTwo.first_review(2)
+    if created:
+        Review.objects.create(
+            item=instance,
+            next_review_date=review.review_date)
+

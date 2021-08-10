@@ -13,6 +13,7 @@ ngrok.exe
 *.pyc
 pycache
 db.sqlite3
+sdf.py
 media
 __pycache__/
 # Backup files #
