@@ -1,7 +1,8 @@
 from django.db import models
-from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.db.models.signals import post_save
 from supermemo2 import SMTwo
+
 
 class QualityChoices(models.IntegerChoices):
     COMPLETE_BLACKOUT = 0
@@ -12,6 +13,7 @@ class QualityChoices(models.IntegerChoices):
     PERFECT_RESPONSE = 5
 
 class TaskToMemorize(models.Model):
+    telegram_username = models.CharField(max_length=300)
     title = models.CharField(max_length=255)
     url = models.URLField(max_length=255, null=True, blank=True)
     quality = models.IntegerField(
@@ -22,6 +24,9 @@ class Review(models.Model):
     item = models.ForeignKey(TaskToMemorize,
                              related_name='reviews',
                              on_delete=models.CASCADE)
+    easiness = models.DecimalField(max_digits=20, decimal_places=16, null=True, blank=True)
+    interval = models.IntegerField(null=True, blank=True)
+    repetitions = models.IntegerField(null=True, blank=True)
     quality = models.IntegerField(
         choices=QualityChoices.choices,
         default=QualityChoices.CORRECT_IT_WAS_DIFFICULT_TO_RECALL)
@@ -35,9 +40,11 @@ class Review(models.Model):
 @receiver(post_save, sender=TaskToMemorize)
 def create_review(sender, instance, created, *args, **kwargs):
     """Post save signals which create a first view for users"""
-    review = SMTwo.first_review(2)
+    review = SMTwo.first_review(QualityChoices.CORRECT_IT_WAS_DIFFICULT_TO_RECALL)
     if created:
         Review.objects.create(
             item=instance,
+            easiness=review.easiness,
+            interval=review.interval,
+            repetitions=review.repetitions,
             next_review_date=review.review_date)
-

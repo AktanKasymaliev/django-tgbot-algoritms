@@ -15,7 +15,7 @@ SECRET_KEY = os.environ.get("DJANGO_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = eval(os.environ.get("DJANGO_DEBUG"))
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", "599b7c514b20.ngrok.io"]
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "43a98bd4ba07.ngrok.io"]
 
 
 # Application definition
@@ -134,3 +134,11 @@ STATICFILES_DIRS = [STATIC_DIR]
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+MESSAGES_TO_SEND = {
+    "GREETING": 'Hello 👋! Send me url link of task',
+    "GOT_IT": "Well, I got your link. ✅\nRate it! 🌟",
+    "RATE_CHOICE": ("1", "2", "3", "4", "5"),
+    "DATE_OF_REVIEW": "You should review 👀 this taks at {} 📅",
+    "TASK_EXIST": "Like this task you sent me before 🙊",
+}
