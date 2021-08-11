@@ -1,5 +1,7 @@
-from typing import Dict
+from datetime import datetime
+from typing import Dict, List, Text
 
+import requests
 from django_tgbot.decorators import processor
 from django_tgbot.state_manager import message_types, update_types, state_types
 from django_tgbot.types.update import Update
@@ -8,13 +10,13 @@ from django_tgbot.types.replykeyboardmarkup import ReplyKeyboardMarkup, keyboard
 from .bot import state_manager
 from .models import TelegramState
 from .bot import TelegramBot
-from memo.models import Review
+from memo.models import Review, TaskToMemorize
 from learn_algoritms_bot.features.funcs import (
                                                 isexist_task,
                                                 create_instance_TaskToMemorize)
-from config.settings import MESSAGES_TO_SEND
+from config.settings import MESSAGES_TO_SEND, API_URL
 
-KEYBOARDS_RATE = [
+KEYBOARDS_RATE: List[keyboardbutton.KeyboardButton] = [
     keyboardbutton.KeyboardButton.a('1'), 
     keyboardbutton.KeyboardButton.a('2'),
     keyboardbutton.KeyboardButton.a('3'),
@@ -39,11 +41,12 @@ def welcome(bot: TelegramBot, update: Update, state: TelegramState):
 
 @processor(state_manager, from_states=state_types.All, message_types=message_types.Text)
 def create_views(bot: TelegramBot, update: Update, state: TelegramState):
+
     if update.get_message().get_text().startswith("http"):
         url = update.get_message().get_text()
+
         if isexist_task(update=update, bot=bot, url=url):
             DATA["url"] = url
-
             bot.sendMessage(
                 update.get_chat().get_id(), MESSAGES_TO_SEND.get("GOT_IT", None),
                 reply_markup=ReplyKeyboard
@@ -58,6 +61,17 @@ def create_views(bot: TelegramBot, update: Update, state: TelegramState):
 
         bot.sendMessage(
                 update.get_chat().get_id(),
-                MESSAGES_TO_SEND.get("DATE_OF_REVIEW", None).format(review.next_review_date
-                )
+                MESSAGES_TO_SEND.get("DATE_OF_REVIEW", None).format(review.next_review_date)
             )
+
+@processor(state_manager, from_states=state_types.All)
+def remind(bot: TelegramBot, update: Update, state: TelegramState):
+    for task in TaskToMemorize.objects.filter(telegram_username=update.get_user().get_username()):
+        review = Review.objects.get(item=task)
+        if datetime.now().date() == review.next_review_date:
+                bot.sendMessage(
+                    update.get_chat().get_id(),
+                    MESSAGES_TO_SEND.get("REMIND", None).format(review.item.url)
+                    )
+
+""" TODO REMIND FUNC()"""

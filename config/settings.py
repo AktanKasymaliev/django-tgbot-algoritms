@@ -15,7 +15,7 @@ SECRET_KEY = os.environ.get("DJANGO_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = eval(os.environ.get("DJANGO_DEBUG"))
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", "43a98bd4ba07.ngrok.io"]
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "0a209886bd42.ngrok.io"]
 
 
 # Application definition
@@ -141,4 +141,7 @@ MESSAGES_TO_SEND = {
     "RATE_CHOICE": ("1", "2", "3", "4", "5"),
     "DATE_OF_REVIEW": "You should review 👀 this taks at {} 📅",
     "TASK_EXIST": "Like this task you sent me before 🙊",
+    "REMIND": "Hello 👋! You must review ⏰ this: {}"
 }
+
+API_URL = "https://api.telegram.org/bot1932000577:AAFfkpm0HvGYLsouNsKqE5wuag5wxzGLCZY/sendMessage?chat_id={id}&text={text}"
