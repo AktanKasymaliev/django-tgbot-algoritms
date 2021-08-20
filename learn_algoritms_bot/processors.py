@@ -1,5 +1,4 @@
-from datetime import datetime
-from typing import Dict, List, Text
+from typing import Dict, List
 
 import requests
 from django_tgbot.decorators import processor
@@ -10,11 +9,11 @@ from django_tgbot.types.replykeyboardmarkup import ReplyKeyboardMarkup, keyboard
 from .bot import state_manager
 from .models import TelegramState
 from .bot import TelegramBot
-from memo.models import Review, TaskToMemorize
+from memo.models import Review
 from learn_algoritms_bot.features.funcs import (
                                                 isexist_task,
                                                 create_instance_TaskToMemorize)
-from config.settings import MESSAGES_TO_SEND, API_URL
+from config.settings import MESSAGES_TO_SEND
 
 KEYBOARDS_RATE: List[keyboardbutton.KeyboardButton] = [
     keyboardbutton.KeyboardButton.a('1'), 
@@ -29,10 +28,12 @@ ReplyKeyboard = ReplyKeyboardMarkup.a(
                         )
 
 DATA: Dict = {} # dict -> {url: str, "quality": int}
+JSON_DATA: Dict = {}
 
 @processor(state_manager, from_states=state_types.All, message_types=message_types.Text)
 def welcome(bot: TelegramBot, update: Update, state: TelegramState):
-
+    global JSON_DATA
+    JSON_DATA["DATA"] = update.to_json()
     if update.get_message().get_text() == "/start":
         bot.sendMessage(
             update.get_chat().get_id(), MESSAGES_TO_SEND.get("GREETING", None)
@@ -63,15 +64,3 @@ def create_views(bot: TelegramBot, update: Update, state: TelegramState):
                 update.get_chat().get_id(),
                 MESSAGES_TO_SEND.get("DATE_OF_REVIEW", None).format(review.next_review_date)
             )
-
-@processor(state_manager, from_states=state_types.All)
-def remind(bot: TelegramBot, update: Update, state: TelegramState):
-    for task in TaskToMemorize.objects.filter(telegram_username=update.get_user().get_username()):
-        review = Review.objects.get(item=task)
-        if datetime.now().date() == review.next_review_date:
-                bot.sendMessage(
-                    update.get_chat().get_id(),
-                    MESSAGES_TO_SEND.get("REMIND", None).format(review.item.url)
-                    )
-
-""" TODO REMIND FUNC()"""

@@ -9,6 +9,7 @@ from config.settings import MESSAGES_TO_SEND
 
 def create_instance_TaskToMemorize(update: Update, **kwargs) -> TaskToMemorize:
     return TaskToMemorize.objects.create(
+        chat_id=update.get_chat().get_id(),
         telegram_username=update.get_user().get_username(),
         title=str(datetime.now().microsecond),
         **kwargs

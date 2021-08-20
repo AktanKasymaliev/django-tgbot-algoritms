@@ -1,6 +1,7 @@
 import os
 
 from pathlib import Path
+from learn_algoritms_bot.credentials import BOT_TOKEN
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -15,7 +16,7 @@ SECRET_KEY = os.environ.get("DJANGO_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = eval(os.environ.get("DJANGO_DEBUG"))
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", "0a209886bd42.ngrok.io"]
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "ac32fb15c3e2.ngrok.io"]
 
 
 # Application definition
@@ -29,8 +30,10 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     "django_tgbot",
-    "learn_algoritms_bot",
+    "django_celery_beat",
+    "django_celery_results",
 
+    "learn_algoritms_bot",
     "memo",
 ]
 
@@ -112,7 +115,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = "Asia/Bishkek"
 
 USE_I18N = True
 
@@ -144,4 +147,10 @@ MESSAGES_TO_SEND = {
     "REMIND": "Hello 👋! You must review ⏰ this: {}"
 }
 
-API_URL = "https://api.telegram.org/bot1932000577:AAFfkpm0HvGYLsouNsKqE5wuag5wxzGLCZY/sendMessage?chat_id={id}&text={text}"
+
+# Celery Configuration Options
+CELERY_TIMEZONE = "Asia/Bishkek"
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 30 * 60
+CELERY_BROKER_URL = "redis://localhost:6379/0"
+CELERY_RESULT_BACKEND = "django-db"

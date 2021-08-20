@@ -13,6 +13,7 @@ class QualityChoices(models.IntegerChoices):
     PERFECT_RESPONSE = 5
 
 class TaskToMemorize(models.Model):
+    chat_id = models.IntegerField()
     telegram_username = models.CharField(max_length=300)
     title = models.CharField(max_length=255)
     url = models.URLField(max_length=255, null=True, blank=True)

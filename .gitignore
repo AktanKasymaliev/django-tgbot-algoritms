@@ -13,6 +13,7 @@ ngrok.exe
 *.pyc
 pycache
 db.sqlite3
+credentials.py/
 sdf.py
 media
 __pycache__/
