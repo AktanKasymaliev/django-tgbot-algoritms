@@ -16,7 +16,7 @@ SECRET_KEY = os.environ.get("DJANGO_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = eval(os.environ.get("DJANGO_DEBUG"))
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", "ac32fb15c3e2.ngrok.io"]
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "7217-212-112-100-16.ngrok.io"]
 
 
 # Application definition
@@ -144,7 +144,8 @@ MESSAGES_TO_SEND = {
     "RATE_CHOICE": ("1", "2", "3", "4", "5"),
     "DATE_OF_REVIEW": "You should review 👀 this taks at {} 📅",
     "TASK_EXIST": "Like this task you sent me before 🙊",
-    "REMIND": "Hello 👋! You must review ⏰ this: {}"
+    "REMIND": "Hello 👋! You must review ⏰ this: {}",
+    "REVIEW": "If you reviewed this taks - send me like: ' 5 - https://task.com/ '"
 }
 
 
