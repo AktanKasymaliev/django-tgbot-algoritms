@@ -1,3 +1,4 @@
+import json
 from typing import Text
 import requests
 from celery import shared_task
@@ -12,15 +13,17 @@ from .processors import inline_kb
 
 @shared_task
 def remind():
+    data = {}
     for task in TaskToMemorize.objects.all():
         review = Review.objects.get(item=task)
         if datetime.now().date() == review.next_review_date:
-            text=MESSAGES_TO_SEND.get("REMIND", None).format(review.item.url)
-            bot.sendMessage(task.chat_id, text=text, reply_markup=inline_kb)
-            # requests.get(API_URL.format(
-            #     id=task.chat_id, 
-            #     text=MESSAGES_TO_SEND.get("REMIND", None).format(review.item.url)+ '\n\n' +MESSAGES_TO_SEND.get("REVIEW", None))
-            #     )
-            return "Sended"
+            text = MESSAGES_TO_SEND.get("REMIND", None).format(review.item.url)
+            data.update({
+                "chat_id": task.chat_id, 
+                "text": text,
+                "reply_markup": json.dumps(inline_kb.to_dict())
+            })
+            requests.post(url=API_URL,
+                            data=data)
 
 

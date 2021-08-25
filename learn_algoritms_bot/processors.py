@@ -1,7 +1,5 @@
-from inspect import Attribute
 from typing import Dict, List
 
-import requests
 from django_tgbot.decorators import processor
 from django_tgbot.state_manager import message_types, update_types, state_types
 from django_tgbot.types.update import Update
@@ -13,7 +11,7 @@ from .bot import state_manager
 from .models import TelegramState
 from .bot import TelegramBot
 from memo.models import Review, TaskToMemorize
-from learn_algoritms_bot.features.funcs import (
+from learn_algoritms_bot.features.funcs import (set_review,
                                                 isexist_task,
                                                 create_instance_TaskToMemorize)
 from config.settings import MESSAGES_TO_SEND
@@ -34,14 +32,14 @@ inline_kb = InlineKeyboardMarkup.a(inline_keyboard=[
         InlineKeyboardButton.a(text='3', callback_data="3"),
     ],
     [InlineKeyboardButton.a(text='4', callback_data="4"),
-     InlineKeyboardButton.a(text='5', callback_data="4")]
+     InlineKeyboardButton.a(text='5', callback_data="5")]
 ])
 
 ReplyKeyboard = ReplyKeyboardMarkup.a(
                     [KEYBOARDS_RATE], one_time_keyboard=True, resize_keyboard=True,
                         )
 
-DATA: Dict = {} # dict -> {url: str, "quality": int}
+DATA: Dict = {} # {"url": str, "quality": int}
 
 
 @processor(state_manager, from_states=state_types.All, message_types=message_types.Text)
@@ -86,18 +84,20 @@ def create_views(bot: TelegramBot, update: Update, state: TelegramState):
 
 @processor(state_manager, from_states=state_types.All, message_types=message_types.Text)
 def next_review(bot: TelegramBot, update: Update, state: TelegramState):
+    chat_id = update.get_chat().get_id()
     try:
-        callback_data = update.get_callback_query().get_data()
-
+        callback_data = int(update.get_callback_query().get_data())
         if callback_data:
-            taks = TaskToMemorize.objects.filter(chat_id=update.get_chat().get_id())
-            if callback_data == "1":
-                bot.sendMessage(
-                        update.get_chat().get_id(),
-                        "reviewed_data"
-                    )
-    except AttributeError:
+            url = update.get_callback_query().get_message().get_text().split("this: ")[-1]
+            
+            task_instance: TaskToMemorize = TaskToMemorize.objects.get(chat_id=chat_id, url=url)
+            review_instance: Review = Review.objects.get(item=task_instance)
+
+            review_obj = set_review(review_instance, callback_data)
+
+            bot.sendMessage(
+                    chat_id,
+                    MESSAGES_TO_SEND.get("REVIEW", None).format(date=review_obj.next_review_date, url=url)
+                )
+    except (TaskToMemorize.DoesNotExist, Review.DoesNotExist, AttributeError):
         pass
-    """
-Доделать с review obj and tasktomemorize
-"""
