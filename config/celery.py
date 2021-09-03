@@ -22,6 +22,6 @@ app.autodiscover_tasks()
 app.conf.beat_schedule = {
     "remind-user": {
         "task": "learn_algoritms_bot.tasks.remind",
-        "schedule": 15.0
+        "schedule": 86400.0
     }
 }
