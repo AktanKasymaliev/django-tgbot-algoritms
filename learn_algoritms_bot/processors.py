@@ -11,9 +11,11 @@ from .bot import state_manager
 from .models import TelegramState
 from .bot import TelegramBot
 from memo.models import Review, TaskToMemorize
-from learn_algoritms_bot.features.funcs import (set_review,
-                                                isexist_task,
-                                                create_instance_TaskToMemorize)
+from learn_algoritms_bot.features.funcs import (handle_new_task, set_review,
+                                                handle_rating,
+                                                create_instance_TaskToMemorize,
+                                                task_exists,
+                                                handle_existing_task)
 from config.settings import MESSAGES_TO_SEND
 
 
@@ -56,29 +58,18 @@ def welcome(bot: TelegramBot, update: Update, state: TelegramState):
 @processor(state_manager, from_states=state_types.All, message_types=message_types.Text)
 def create_views(bot: TelegramBot, update: Update, state: TelegramState):
     try:
-        if update.get_message().get_text().startswith("http"):
-            url = update.get_message().get_text()
+        text = update.get_message().get_text()
+        if text.startswith("http"):
+            url = text
+            
+            if task_exists(update, url):
+                handle_existing_task(bot, update)
+            else:
+                handle_new_task(bot, update, url)
 
-            if isexist_task(update=update, bot=bot, url=url):
-                DATA["url"] = url
-                bot.sendMessage(
-                    update.get_chat().get_id(), MESSAGES_TO_SEND.get("GOT_IT", None),
-                    reply_markup=ReplyKeyboard
-                    )
+        if text in MESSAGES_TO_SEND.get("RATE_CHOICE", None):
+            handle_rating(bot, update, text)
 
-        if update.get_message().get_text() in MESSAGES_TO_SEND.get("RATE_CHOICE", None):
-            quality = update.get_message().get_text()
-            DATA["quality"] = quality
-
-            instance = create_instance_TaskToMemorize(update, **DATA)
-            review = Review.objects.get(item=instance)
-            review.quality = DATA["quality"]
-            review.save()
-
-            bot.sendMessage(
-                    update.get_chat().get_id(),
-                    MESSAGES_TO_SEND.get("DATE_OF_REVIEW", None).format(review.next_review_date)
-                )
     except AttributeError:
         pass
 
