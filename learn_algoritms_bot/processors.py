@@ -37,12 +37,6 @@ inline_kb = InlineKeyboardMarkup.a(inline_keyboard=[
      InlineKeyboardButton.a(text='5', callback_data="5")]
 ])
 
-ReplyKeyboard = ReplyKeyboardMarkup.a(
-                    [KEYBOARDS_RATE], one_time_keyboard=True, resize_keyboard=True,
-                        )
-
-DATA: Dict = {} # {"url": str, "quality": int}
-
 
 @processor(state_manager, from_states=state_types.All, message_types=message_types.Text)
 def welcome(bot: TelegramBot, update: Update, state: TelegramState):
@@ -67,7 +61,7 @@ def create_views(bot: TelegramBot, update: Update, state: TelegramState):
             else:
                 handle_new_task(bot, update, url)
 
-        if text in MESSAGES_TO_SEND.get("RATE_CHOICE", None):
+        if text.split(". ")[-1] in MESSAGES_TO_SEND.get("RATE_CHOICE", None):
             handle_rating(bot, update, text)
 
     except AttributeError:
@@ -75,8 +69,8 @@ def create_views(bot: TelegramBot, update: Update, state: TelegramState):
 
 @processor(state_manager, from_states=state_types.All, message_types=message_types.Text)
 def next_review(bot: TelegramBot, update: Update, state: TelegramState):
-    chat_id = update.get_chat().get_id()
     try:
+        chat_id = update.get_chat().get_id()
         callback_data = int(update.get_callback_query().get_data())
         if callback_data:
             url = update.get_callback_query().get_message().get_text().split("this: ")[-1]
