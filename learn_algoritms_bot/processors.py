@@ -11,9 +11,11 @@ from .bot import state_manager
 from .models import TelegramState
 from .bot import TelegramBot
 from memo.models import Review, TaskToMemorize
-from learn_algoritms_bot.features.funcs import (set_review,
-                                                isexist_task,
-                                                create_instance_TaskToMemorize)
+from learn_algoritms_bot.features.funcs import (handle_new_task, set_review,
+                                                handle_rating,
+                                                create_instance_TaskToMemorize,
+                                                task_exists,
+                                                handle_existing_task)
 from config.settings import MESSAGES_TO_SEND
 
 
@@ -35,12 +37,6 @@ inline_kb = InlineKeyboardMarkup.a(inline_keyboard=[
      InlineKeyboardButton.a(text='5', callback_data="5")]
 ])
 
-ReplyKeyboard = ReplyKeyboardMarkup.a(
-                    [KEYBOARDS_RATE], one_time_keyboard=True, resize_keyboard=True,
-                        )
-
-DATA: Dict = {} # {"url": str, "quality": int}
-
 
 @processor(state_manager, from_states=state_types.All, message_types=message_types.Text)
 def welcome(bot: TelegramBot, update: Update, state: TelegramState):
@@ -56,36 +52,25 @@ def welcome(bot: TelegramBot, update: Update, state: TelegramState):
 @processor(state_manager, from_states=state_types.All, message_types=message_types.Text)
 def create_views(bot: TelegramBot, update: Update, state: TelegramState):
     try:
-        if update.get_message().get_text().startswith("http"):
-            url = update.get_message().get_text()
+        text = update.get_message().get_text()
+        if text.startswith("http"):
+            url = text
+            
+            if task_exists(update, url):
+                handle_existing_task(bot, update)
+            else:
+                handle_new_task(bot, update, url)
 
-            if isexist_task(update=update, bot=bot, url=url):
-                DATA["url"] = url
-                bot.sendMessage(
-                    update.get_chat().get_id(), MESSAGES_TO_SEND.get("GOT_IT", None),
-                    reply_markup=ReplyKeyboard
-                    )
+        if text.split(". ")[-1] in MESSAGES_TO_SEND.get("RATE_CHOICE", None):
+            handle_rating(bot, update, text)
 
-        if update.get_message().get_text() in MESSAGES_TO_SEND.get("RATE_CHOICE", None):
-            quality = update.get_message().get_text()
-            DATA["quality"] = quality
-
-            instance = create_instance_TaskToMemorize(update, **DATA)
-            review = Review.objects.get(item=instance)
-            review.quality = DATA["quality"]
-            review.save()
-
-            bot.sendMessage(
-                    update.get_chat().get_id(),
-                    MESSAGES_TO_SEND.get("DATE_OF_REVIEW", None).format(review.next_review_date)
-                )
     except AttributeError:
         pass
 
 @processor(state_manager, from_states=state_types.All, message_types=message_types.Text)
 def next_review(bot: TelegramBot, update: Update, state: TelegramState):
-    chat_id = update.get_chat().get_id()
     try:
+        chat_id = update.get_chat().get_id()
         callback_data = int(update.get_callback_query().get_data())
         if callback_data:
             url = update.get_callback_query().get_message().get_text().split("this: ")[-1]
